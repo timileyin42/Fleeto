@@ -22,10 +22,13 @@ alembic_cfg = context.config
 if alembic_cfg.config_file_name is not None:
     fileConfig(alembic_cfg.config_file_name)
 
-# Convert asyncpg URL → standard postgresql URL for the sync offline mode,
-# keep asyncpg for the async online mode.
-_async_url = settings.database_url
-_sync_url  = _async_url.replace("postgresql+asyncpg://", "postgresql://")
+# Strip sslmode= (not supported by asyncpg — SSL passed via connect_args instead)
+_async_url = (
+    settings.database_url
+    .replace("?sslmode=require", "")
+    .replace("&sslmode=require", "")
+)
+_sync_url = _async_url.replace("postgresql+asyncpg://", "postgresql://")
 
 alembic_cfg.set_main_option("sqlalchemy.url", _sync_url)
 
@@ -62,10 +65,13 @@ async def run_async_migrations() -> None:
     cfg_section = alembic_cfg.get_section(alembic_cfg.config_ini_section, {})
     cfg_section["sqlalchemy.url"] = _async_url
 
+    _ssl = {"ssl": "require"} if "asyncpg" in _async_url else {}
+
     connectable = async_engine_from_config(
         cfg_section,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=_ssl,
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
