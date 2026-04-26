@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ briefing.companyName }} - Briefing Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }
+    h1, h2 { margin-bottom: 8px; }
+    .meta { color: #4b5563; margin-bottom: 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h1>{{ briefing.companyName }} ({{ briefing.ticker }})</h1>
+  <p class="meta">Generated at {{ briefing.created_at }}</p>
+
+  <div class="card">
+    <h2>Summary</h2>
+    <p>{{ briefing.summary }}</p>
+    <strong>Recommendation: {{ briefing.recommendation }}</strong>
+  </div>
+
+  <div class="card">
+    <h2>Key Points</h2>
+    <ul>
+      {% for point in briefing.keyPoints %}
+      <li>{{ point }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Risks</h2>
+    <ul>
+      {% for risk in briefing.risks %}
+      <li>{{ risk }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Metrics</h2>
+    <ul>
+      {% for metric in briefing.metrics %}
+      <li>{{ metric.name }}: {{ metric.value }}{% if metric.unit %} {{ metric.unit }}{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</body>
+</html>

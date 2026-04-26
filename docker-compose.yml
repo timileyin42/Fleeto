@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fleeto_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fleeto
+      POSTGRES_PASSWORD: fleeto_dev
+      POSTGRES_DB: fleeto
+    ports:
+      - "5432:5432"
+    volumes:
+      - fleeto_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fleeto"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  fleeto_pgdata:

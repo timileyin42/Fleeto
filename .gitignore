@@ -1,0 +1,33 @@
+# Secrets & credentials — never commit these
+*.json
+fleeto-60a7a-firebase-adminsdk-fbsvc-8732abe2fa.json
+*firebase-adminsdk*.json
+*service-account*.json
+
+# Allow project config JSON files
+!package.json
+!package-lock.json
+!fleeto-web/tsconfig.json
+!fleeto-web/tsconfig.app.json
+!fleeto-web/tsconfig.node.json
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Python
+python-service/myenv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Frontend build output
+fleeto-web/dist/
+fleeto-web/node_modules/
+
+# IDE
+.vscode/
+stitch_design
+stitch_fleeto_logistics_operations_platform.zip
