@@ -2,10 +2,14 @@ import { useState, useRef } from 'react'
 import DashboardLayout from '../../components/DashboardLayout'
 import { useAuth } from '../../contexts/AuthContext'
 import client from '../../api/client'
+import { getMe } from '../../api/auth'
 
 export default function Settings() {
   const { operator } = useAuth()
   const [uploading, setUploading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [name, setName] = useState(operator?.name || '')
   const [avatarUrl, setAvatarUrl] = useState(operator?.profile_picture_url || '')
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -22,6 +26,19 @@ export default function Settings() {
       setAvatarUrl(res.data.url)
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    if (!name.trim()) return
+    setSaving(true)
+    try {
+      await client.patch('/auth/me', { name: name.trim() })
+      await getMe()
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -53,11 +70,12 @@ export default function Settings() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-md">
+          <div className="grid grid-cols-2 gap-md mb-lg">
             <div className="flex flex-col gap-xs">
               <label className="font-mono text-mono-label text-on-surface-variant uppercase">Business Name</label>
               <input
-                defaultValue={operator?.name}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="border border-outline-variant rounded-xl px-md py-3 text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-surface-container-lowest"
               />
             </div>
@@ -69,6 +87,13 @@ export default function Settings() {
               />
             </div>
           </div>
+          <button
+            onClick={handleSave}
+            disabled={saving || !name.trim() || name.trim() === operator?.name}
+            className="bg-primary text-on-primary px-lg py-3 rounded-xl text-body-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {saved ? 'Saved!' : saving ? 'Saving…' : 'Save Changes'}
+          </button>
         </div>
 
         {/* Plan info */}

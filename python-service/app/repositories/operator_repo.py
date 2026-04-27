@@ -42,6 +42,12 @@ class OperatorRepository(BaseRepository):
         )
         return result.scalar_one_or_none()
 
+    async def update_name(self, operator: Operator, name: str) -> Operator:
+        operator.name = name
+        await self.session.commit()
+        await self.session.refresh(operator)
+        return operator
+
     async def link_firebase_uid(self, operator: Operator, firebase_uid: str) -> Operator:
         operator.firebase_uid = firebase_uid
         await self.session.commit()

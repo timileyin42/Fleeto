@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import get_auth_service, get_current_operator, get_current_rider
+from app.api.deps import get_auth_service, get_current_operator, get_current_rider, get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.repositories.operator_repo import OperatorRepository
 from app.core.firebase import verify_firebase_token
 from app.models.operator import Operator
 from app.models.rider import Rider
-from app.schemas.auth import GoogleSignIn, OperatorLogin, OperatorRegister, OperatorResponse, RiderLogin, TokenResponse
+from app.schemas.auth import GoogleSignIn, OperatorLogin, OperatorRegister, OperatorResponse, OperatorUpdate, RiderLogin, TokenResponse
 from app.schemas.rider import RiderResponse
 from app.services.auth_service import AuthService
 
@@ -60,6 +62,16 @@ async def get_me(
     current_operator: Operator = Depends(get_current_operator),
 ) -> Operator:
     return current_operator
+
+
+@router.patch("/me", response_model=OperatorResponse)
+async def update_me(
+    payload: OperatorUpdate,
+    current_operator: Operator = Depends(get_current_operator),
+    db: AsyncSession = Depends(get_db),
+) -> Operator:
+    repo = OperatorRepository(db)
+    return await repo.update_name(current_operator, payload.name.strip())
 
 
 @router.get("/rider/me", response_model=RiderResponse)

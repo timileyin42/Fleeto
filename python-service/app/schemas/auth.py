@@ -32,6 +32,10 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class OperatorUpdate(BaseModel):
+    name: str
+
+
 class OperatorResponse(BaseModel):
     id: uuid.UUID
     name: str
