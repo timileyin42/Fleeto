@@ -8,7 +8,6 @@ export default function Settings() {
   const { operator } = useAuth()
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [name, setName] = useState(operator?.name || '')
   const [avatarUrl, setAvatarUrl] = useState(operator?.profile_picture_url || '')
   const fileRef = useRef<HTMLInputElement>(null)
@@ -35,8 +34,6 @@ export default function Settings() {
     try {
       await client.patch('/auth/me', { name: name.trim() })
       await getMe()
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
     } finally {
       setSaving(false)
     }
@@ -87,13 +84,15 @@ export default function Settings() {
               />
             </div>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={saving || !name.trim() || name.trim() === operator?.name}
-            className="bg-primary text-on-primary px-lg py-3 rounded-xl text-body-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            {saved ? 'Saved!' : saving ? 'Saving…' : 'Save Changes'}
-          </button>
+          {name.trim() !== operator?.name && (
+            <button
+              onClick={handleSave}
+              disabled={saving || !name.trim()}
+              className="bg-primary text-on-primary px-lg py-3 rounded-xl text-body-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+          )}
         </div>
 
         {/* Plan info */}
