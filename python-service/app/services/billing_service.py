@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import uuid
@@ -13,6 +14,7 @@ from app.models.operator import Operator
 from app.repositories.operator_repo import OperatorRepository
 from app.repositories.payment_repo import PaymentRepository
 from app.schemas.billing import BillingStatusResponse, PaymentRecord, SubscribeResponse
+from app.services.email_service import send_payment_success_email
 
 _PLAN_AMOUNTS: dict[OperatorPlan, int] = {
     OperatorPlan.growth: 1_500_000,   # ₦15,000 in kobo
@@ -112,6 +114,21 @@ class BillingService:
         if operator:
             operator.plan = payment.plan
             await self.operator_repo.session.commit()
+
+            plan_name = payment.plan.value.capitalize()
+            amount_str = f"₦{payment.amount // 100:,}"
+            dashboard_url = f"{settings.app_base_url}/dashboard/billing"
+            asyncio.create_task(
+                asyncio.to_thread(
+                    send_payment_success_email,
+                    operator_email=operator.email,
+                    operator_name=operator.name,
+                    plan_name=plan_name,
+                    amount=amount_str,
+                    reference=payment.reference,
+                    dashboard_url=dashboard_url,
+                )
+            )
 
     async def get_status(self, operator: Operator) -> BillingStatusResponse:
         payments = await self.payment_repo.list_for_operator(operator.id)

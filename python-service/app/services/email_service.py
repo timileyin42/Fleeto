@@ -94,6 +94,29 @@ def send_delivery_success_email(
     )
 
 
+def send_payment_success_email(
+    operator_email: str,
+    operator_name: str,
+    plan_name: str,
+    amount: str,
+    reference: str,
+    dashboard_url: str,
+) -> None:
+    html = _render(
+        "payment_success.html",
+        operator_name=operator_name,
+        plan_name=plan_name,
+        amount=amount,
+        reference=reference,
+        dashboard_url=dashboard_url,
+    )
+    _send(
+        to=operator_email,
+        subject=f"You're now on the {plan_name} plan — Delivra",
+        html=html,
+    )
+
+
 def send_rider_credentials_email(
     rider_email: str,
     rider_name: str,

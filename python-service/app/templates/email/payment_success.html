@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+</head>
+<body style="margin:0;padding:0;background-color:#fdf8f8;font-family:'Inter',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fdf8f8;">
+  <tr><td align="center" style="padding:0 16px;">
+  <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+    <!-- Header -->
+    <tr>
+      <td style="padding:24px 0 16px;border-bottom:1px solid #e5e7eb;">
+        <span style="font-size:18px;font-weight:900;letter-spacing:-0.02em;color:#111;text-transform:uppercase;">DELIVRA</span>
+      </td>
+    </tr>
+
+    <!-- Hero -->
+    <tr>
+      <td style="padding:40px 0 24px;">
+        <p style="margin:0 0 8px;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#5f5e61;">Subscription Confirmed</p>
+        <h1 style="margin:0 0 16px;font-size:36px;font-weight:800;letter-spacing:-0.02em;color:#111;line-height:1.2;">You're on the<br>{{ plan_name }} plan.</h1>
+        <p style="margin:0 0 24px;font-size:17px;color:#5f5e61;line-height:1.6;">Your payment was received and your account has been upgraded. Everything is active — head to your dashboard to make the most of it.</p>
+        <a href="{{ dashboard_url }}" style="display:inline-block;background-color:#111;color:#fff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:8px;">Go to Dashboard</a>
+      </td>
+    </tr>
+
+    <!-- Payment Summary -->
+    <tr>
+      <td style="padding:0 0 32px;">
+        <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:#111;letter-spacing:-0.01em;">Payment Summary</h2>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:16px 20px;font-size:13px;color:#5f5e61;">Plan</td>
+              <td style="padding:16px 20px;font-size:14px;font-weight:700;color:#111;text-align:right;">{{ plan_name }}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:16px 20px;font-size:13px;color:#5f5e61;">Amount Paid</td>
+              <td style="padding:16px 20px;font-size:14px;font-weight:700;color:#111;text-align:right;">{{ amount }}</td>
+            </tr>
+            <tr>
+              <td style="padding:16px 20px;font-size:13px;color:#5f5e61;">Reference</td>
+              <td style="padding:16px 20px;font-size:13px;font-weight:600;color:#6b7280;text-align:right;font-family:monospace;">{{ reference }}</td>
+            </tr>
+          </table>
+        </div>
+      </td>
+    </tr>
+
+    <!-- What's Unlocked -->
+    <tr>
+      <td style="padding:0 0 40px;">
+        <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:#111;letter-spacing:-0.01em;">What's Unlocked</h2>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="width:33%;padding:0 8px 0 0;vertical-align:top;">
+              <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
+                <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#111;">More Riders</p>
+                <p style="margin:0;font-size:13px;color:#5f5e61;">Scale your fleet beyond the Starter limit.</p>
+              </div>
+            </td>
+            <td style="width:33%;padding:0 4px;vertical-align:top;">
+              <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
+                <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#111;">More Jobs</p>
+                <p style="margin:0;font-size:13px;color:#5f5e61;">Higher monthly dispatch volume for growing operations.</p>
+              </div>
+            </td>
+            <td style="width:33%;padding:0 0 0 8px;vertical-align:top;">
+              <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
+                <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#111;">Priority Support</p>
+                <p style="margin:0;font-size:13px;color:#5f5e61;">Faster response times when you need help.</p>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Notice -->
+    <tr>
+      <td style="padding:0 0 40px;">
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:20px 24px;">
+          <p style="margin:0;font-size:13px;color:#5f5e61;line-height:1.6;">If you did not make this payment or believe this is an error, contact us immediately at <a href="mailto:support@delivra.online" style="color:#111;font-weight:600;text-decoration:none;">support@delivra.online</a> and we'll look into it right away.</p>
+        </div>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:32px 0;border-top:1px solid #e5e7eb;text-align:center;">
+        <p style="margin:0 0 10px;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9ca3af;">DELIVRA</p>
+        <p style="margin:0 0 10px;font-size:11px;color:#9ca3af;">
+          <a href="#" style="color:#6b7280;text-decoration:none;margin:0 8px;">Privacy Policy</a>
+          <a href="#" style="color:#6b7280;text-decoration:none;margin:0 8px;">Terms of Service</a>
+          <a href="#" style="color:#6b7280;text-decoration:none;margin:0 8px;">Support</a>
+        </p>
+        <p style="margin:0;font-size:11px;color:#9ca3af;">© 2026 Delivra. All rights reserved.</p>
+      </td>
+    </tr>
+
+  </table>
+  </td></tr>
+</table>
+</body>
+</html>
