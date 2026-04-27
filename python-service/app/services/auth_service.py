@@ -1,30 +1,96 @@
 from __future__ import annotations
 
 import asyncio
+import secrets
+from datetime import datetime, timedelta, timezone
 
 from app.core.config import settings
 from app.core.exceptions import AppException
 from app.core.security import create_access_token, hash_password, verify_password
 from app.repositories.operator_repo import OperatorRepository
+from app.repositories.otp_repo import OtpRepository
 from app.repositories.rider_repo import RiderRepository
-from app.schemas.auth import OperatorRegister, TokenResponse
-from app.services.email_service import send_welcome_email
+from app.schemas.auth import OperatorRegister, OtpSentResponse, TokenResponse
+from app.services.email_service import send_otp_email, send_welcome_email
+
+_OTP_TTL_MINUTES = 10
 
 
 class AuthService:
-    def __init__(self, operator_repo: OperatorRepository, rider_repo: RiderRepository) -> None:
+    def __init__(
+        self,
+        operator_repo: OperatorRepository,
+        rider_repo: RiderRepository,
+        otp_repo: OtpRepository,
+    ) -> None:
         self.operator_repo = operator_repo
         self.rider_repo = rider_repo
+        self.otp_repo = otp_repo
 
-    async def register_operator(self, payload: OperatorRegister) -> TokenResponse:
+    async def register_operator(self, payload: OperatorRegister) -> OtpSentResponse:
         existing = await self.operator_repo.get_by_email(payload.email)
         if existing:
             raise AppException(detail="Email already registered", code="email_taken", status_code=409)
-        operator = await self.operator_repo.create(
-            name=payload.name,
+
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=_OTP_TTL_MINUTES)
+
+        await self.otp_repo.upsert(
             email=payload.email,
+            name=payload.name,
             hashed_password=hash_password(payload.password),
+            code=code,
+            expires_at=expires_at,
         )
+        await self.otp_repo.session.commit()
+
+        asyncio.create_task(
+            asyncio.to_thread(
+                send_otp_email,
+                operator_email=payload.email,
+                operator_name=payload.name,
+                code=code,
+            )
+        )
+
+        return OtpSentResponse(
+            message="Verification code sent to your email",
+            email=payload.email,
+        )
+
+    async def verify_otp(self, email: str, code: str) -> TokenResponse:
+        pending = await self.otp_repo.get_by_email(email)
+        if not pending:
+            raise AppException(
+                detail="No verification in progress for this email",
+                code="otp_not_found",
+                status_code=404,
+            )
+
+        if datetime.now(timezone.utc) > pending.expires_at.replace(tzinfo=timezone.utc):
+            await self.otp_repo.delete(pending)
+            await self.otp_repo.session.commit()
+            raise AppException(
+                detail="Verification code expired — please sign up again",
+                code="otp_expired",
+                status_code=400,
+            )
+
+        if pending.code != code.strip():
+            raise AppException(
+                detail="Invalid verification code",
+                code="otp_invalid",
+                status_code=400,
+            )
+
+        operator = await self.operator_repo.create(
+            name=pending.name,
+            email=pending.email,
+            hashed_password=pending.hashed_password,
+        )
+        await self.otp_repo.delete(pending)
+        await self.otp_repo.session.commit()
+
         dashboard_url = f"{settings.app_base_url}/dashboard"
         asyncio.create_task(
             asyncio.to_thread(
@@ -34,8 +100,38 @@ class AuthService:
                 dashboard_url=dashboard_url,
             )
         )
+
         token = create_access_token(f"operator:{operator.id}")
         return TokenResponse(access_token=token)
+
+    async def resend_otp(self, email: str) -> OtpSentResponse:
+        pending = await self.otp_repo.get_by_email(email)
+        if not pending:
+            raise AppException(
+                detail="No pending signup for this email",
+                code="otp_not_found",
+                status_code=404,
+            )
+
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=_OTP_TTL_MINUTES)
+        pending.code = code
+        pending.expires_at = expires_at
+        await self.otp_repo.session.commit()
+
+        asyncio.create_task(
+            asyncio.to_thread(
+                send_otp_email,
+                operator_email=pending.email,
+                operator_name=pending.name,
+                code=code,
+            )
+        )
+
+        return OtpSentResponse(
+            message="Verification code resent",
+            email=email,
+        )
 
     async def login_operator(self, email: str, password: str) -> TokenResponse:
         operator = await self.operator_repo.get_by_email(email)
@@ -52,15 +148,12 @@ class AuthService:
         return TokenResponse(access_token=token)
 
     async def google_signin(self, firebase_uid: str, email: str, name: str) -> TokenResponse:
-        # 1. Try lookup by firebase_uid first (returning user)
         operator = await self.operator_repo.get_by_firebase_uid(firebase_uid)
 
         if not operator:
-            # 2. Try email match (existing email/password account — link it)
             operator = await self.operator_repo.get_by_email(email)
 
         if not operator:
-            # 3. Brand new user — create account automatically
             operator = await self.operator_repo.create_google(
                 firebase_uid=firebase_uid,
                 email=email,
@@ -76,7 +169,6 @@ class AuthService:
                 )
             )
         elif not operator.firebase_uid:
-            # 4. Existing email/password account — link Firebase UID to it
             await self.operator_repo.link_firebase_uid(operator, firebase_uid)
 
         token = create_access_token(f"operator:{operator.id}")

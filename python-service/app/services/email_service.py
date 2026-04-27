@@ -35,6 +35,15 @@ def _send(to: str, subject: str, html: str) -> None:
         logger.error("Failed to send email to %s: %s", to, exc)
 
 
+def send_otp_email(operator_email: str, operator_name: str, code: str) -> None:
+    html = _render("otp_verification.html", operator_name=operator_name, code=code)
+    _send(
+        to=operator_email,
+        subject=f"{code} is your Delivra verification code",
+        html=html,
+    )
+
+
 def send_welcome_email(operator_name: str, operator_email: str, dashboard_url: str) -> None:
     html = _render("welcome.html", operator_name=operator_name, dashboard_url=dashboard_url)
     _send(

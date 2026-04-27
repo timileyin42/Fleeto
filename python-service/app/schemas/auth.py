@@ -27,6 +27,16 @@ class GoogleSignIn(BaseModel):
     id_token: str  # Firebase ID token from the frontend
 
 
+class OtpSentResponse(BaseModel):
+    message: str
+    email: str
+
+
+class VerifyOtpRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

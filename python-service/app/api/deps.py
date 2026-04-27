@@ -14,6 +14,7 @@ from app.repositories.briefing_repo import BriefingRepository
 from app.repositories.job_repo import JobRepository
 from app.repositories.location_repo import LocationRepository
 from app.repositories.operator_repo import OperatorRepository
+from app.repositories.otp_repo import OtpRepository
 from app.repositories.rider_repo import RiderRepository
 from app.services.auth_service import AuthService
 from app.services.briefing_service import BriefingService
@@ -86,6 +87,7 @@ async def get_auth_service(db: AsyncSession = Depends(get_db)) -> AuthService:
     return AuthService(
         operator_repo=OperatorRepository(db),
         rider_repo=RiderRepository(db),
+        otp_repo=OtpRepository(db),
     )
 
 

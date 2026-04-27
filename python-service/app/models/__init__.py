@@ -5,6 +5,7 @@ from app.models.briefing_risk import BriefingRisk
 from app.models.job import Job
 from app.models.location_ping import LocationPing
 from app.models.operator import Operator
+from app.models.otp_code import OtpCode
 from app.models.payment import Payment
 from app.models.rider import Rider
 
@@ -14,6 +15,7 @@ __all__ = [
     "BriefingRisk",
     "BriefingMetric",
     "Operator",
+    "OtpCode",
     "Payment",
     "Rider",
     "Job",
