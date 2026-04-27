@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import asyncio
+
+from app.core.config import settings
 from app.core.exceptions import AppException
 from app.core.security import create_access_token, hash_password, verify_password
 from app.repositories.operator_repo import OperatorRepository
 from app.repositories.rider_repo import RiderRepository
 from app.schemas.auth import OperatorRegister, TokenResponse
+from app.services.email_service import send_welcome_email
 
 
 class AuthService:
@@ -20,6 +24,15 @@ class AuthService:
             name=payload.name,
             email=payload.email,
             hashed_password=hash_password(payload.password),
+        )
+        dashboard_url = f"{settings.app_base_url}/dashboard"
+        asyncio.create_task(
+            asyncio.to_thread(
+                send_welcome_email,
+                operator_name=operator.name,
+                operator_email=operator.email,
+                dashboard_url=dashboard_url,
+            )
         )
         token = create_access_token(f"operator:{operator.id}")
         return TokenResponse(access_token=token)
@@ -52,6 +65,15 @@ class AuthService:
                 firebase_uid=firebase_uid,
                 email=email,
                 name=name,
+            )
+            dashboard_url = f"{settings.app_base_url}/dashboard"
+            asyncio.create_task(
+                asyncio.to_thread(
+                    send_welcome_email,
+                    operator_name=operator.name,
+                    operator_email=operator.email,
+                    dashboard_url=dashboard_url,
+                )
             )
         elif not operator.firebase_uid:
             # 4. Existing email/password account — link Firebase UID to it
