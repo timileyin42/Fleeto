@@ -45,8 +45,9 @@ export default function Signup() {
       const res = await googleSignIn(idToken)
       setAuth(res.data.access_token, 'operator')
       navigate('/dashboard')
-    } catch {
-      setError('Google sign-in failed.')
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || err?.message || 'Google sign-in failed.'
+      setError(msg)
     } finally {
       setLoading(false)
     }

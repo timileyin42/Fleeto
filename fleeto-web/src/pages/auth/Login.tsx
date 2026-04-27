@@ -36,8 +36,8 @@ export default function Login() {
       const res = await googleSignIn(idToken)
       setAuth(res.data.access_token, 'operator')
       navigate('/dashboard')
-    } catch {
-      setError('Google sign-in failed. Try again.')
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || err?.message || 'Google sign-in failed. Try again.')
     } finally {
       setLoading(false)
     }
