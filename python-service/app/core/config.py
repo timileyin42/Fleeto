@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     # Resend email
     resend_api_key: str = ""
-    resend_from_email: str = "Delivra <noreply@delivra.online>"
+    resend_from_email: str = ""
 
     # Cloudflare R2 (S3-compatible object storage)
     cloudflare_r2_account_id: str = ""
