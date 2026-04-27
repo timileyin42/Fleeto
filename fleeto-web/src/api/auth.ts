@@ -26,8 +26,19 @@ export interface RiderResponse {
 export const loginOperator = (email: string, password: string) =>
   client.post<LoginResponse>('/auth/operator/login', { email, password })
 
+export interface OtpSentResponse {
+  message: string
+  email: string
+}
+
 export const registerOperator = (name: string, email: string, password: string) =>
-  client.post<LoginResponse>('/auth/operator/register', { name, email, password })
+  client.post<OtpSentResponse>('/auth/operator/register', { name, email, password })
+
+export const verifyOtp = (email: string, code: string) =>
+  client.post<LoginResponse>('/auth/verify-otp', { email, code })
+
+export const resendOtp = (email: string) =>
+  client.post<OtpSentResponse>('/auth/resend-otp', { email, code: '' })
 
 export const googleSignIn = (idToken: string) =>
   client.post<LoginResponse>('/auth/google', { id_token: idToken })

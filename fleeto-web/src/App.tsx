@@ -9,6 +9,7 @@ import Pricing from './pages/landing/Pricing'
 
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
+import VerifyEmail from './pages/auth/VerifyEmail'
 import RiderLogin from './pages/auth/RiderLogin'
 
 import Dashboard from './pages/operator/Dashboard'
@@ -32,6 +33,7 @@ export default function App() {
           {/* Auth */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/rider/login" element={<RiderLogin />} />
 
           {/* Operator dashboard */}

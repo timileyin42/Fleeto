@@ -27,9 +27,8 @@ export default function Signup() {
     setError('')
     setLoading(true)
     try {
-      const res = await registerOperator(name, email, password)
-      setAuth(res.data.access_token, 'operator')
-      navigate('/dashboard')
+      await registerOperator(name, email, password)
+      navigate(`/verify-email?email=${encodeURIComponent(email)}`)
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Registration failed.')
     } finally {
