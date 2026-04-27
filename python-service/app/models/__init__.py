@@ -6,6 +6,7 @@ from app.models.job import Job
 from app.models.location_ping import LocationPing
 from app.models.operator import Operator
 from app.models.otp_code import OtpCode
+from app.models.password_reset import PasswordReset
 from app.models.payment import Payment
 from app.models.rider import Rider
 
@@ -16,6 +17,7 @@ __all__ = [
     "BriefingMetric",
     "Operator",
     "OtpCode",
+    "PasswordReset",
     "Payment",
     "Rider",
     "Job",

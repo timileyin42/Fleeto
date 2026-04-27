@@ -9,9 +9,10 @@ from app.core.exceptions import AppException
 from app.core.security import create_access_token, hash_password, verify_password
 from app.repositories.operator_repo import OperatorRepository
 from app.repositories.otp_repo import OtpRepository
+from app.repositories.password_reset_repo import PasswordResetRepository
 from app.repositories.rider_repo import RiderRepository
 from app.schemas.auth import OperatorRegister, OtpSentResponse, TokenResponse
-from app.services.email_service import send_otp_email, send_welcome_email
+from app.services.email_service import send_otp_email, send_password_reset_email, send_welcome_email
 
 _OTP_TTL_MINUTES = 10
 
@@ -22,10 +23,12 @@ class AuthService:
         operator_repo: OperatorRepository,
         rider_repo: RiderRepository,
         otp_repo: OtpRepository,
+        password_reset_repo: PasswordResetRepository,
     ) -> None:
         self.operator_repo = operator_repo
         self.rider_repo = rider_repo
         self.otp_repo = otp_repo
+        self.password_reset_repo = password_reset_repo
 
     async def register_operator(self, payload: OperatorRegister) -> OtpSentResponse:
         existing = await self.operator_repo.get_by_email(payload.email)
@@ -132,6 +135,48 @@ class AuthService:
             message="Verification code resent",
             email=email,
         )
+
+    async def forgot_password(self, email: str) -> OtpSentResponse:
+        operator = await self.operator_repo.get_by_email(email)
+        if not operator:
+            # Don't leak whether the email exists — return success regardless
+            return OtpSentResponse(message="If that email is registered, a reset code has been sent", email=email)
+
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=_OTP_TTL_MINUTES)
+        await self.password_reset_repo.upsert(email=email, code=code, expires_at=expires_at)
+        await self.password_reset_repo.session.commit()
+
+        asyncio.create_task(
+            asyncio.to_thread(
+                send_password_reset_email,
+                operator_email=email,
+                operator_name=operator.name,
+                code=code,
+            )
+        )
+        return OtpSentResponse(message="If that email is registered, a reset code has been sent", email=email)
+
+    async def reset_password(self, email: str, code: str, new_password: str) -> None:
+        record = await self.password_reset_repo.get_by_email(email)
+        if not record:
+            raise AppException(detail="No password reset in progress for this email", code="reset_not_found", status_code=404)
+
+        if datetime.now(timezone.utc) > record.expires_at.replace(tzinfo=timezone.utc):
+            await self.password_reset_repo.delete(record)
+            await self.password_reset_repo.session.commit()
+            raise AppException(detail="Reset code expired — please request a new one", code="reset_expired", status_code=400)
+
+        if record.code != code.strip():
+            raise AppException(detail="Invalid reset code", code="reset_invalid", status_code=400)
+
+        operator = await self.operator_repo.get_by_email(email)
+        if not operator:
+            raise AppException(detail="Account not found", code="not_found", status_code=404)
+
+        await self.operator_repo.update_password(operator, hash_password(new_password))
+        await self.password_reset_repo.delete(record)
+        await self.password_reset_repo.session.commit()
 
     async def login_operator(self, email: str, password: str) -> TokenResponse:
         operator = await self.operator_repo.get_by_email(email)

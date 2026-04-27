@@ -8,7 +8,7 @@ from app.repositories.operator_repo import OperatorRepository
 from app.core.firebase import verify_firebase_token
 from app.models.operator import Operator
 from app.models.rider import Rider
-from app.schemas.auth import GoogleSignIn, OperatorLogin, OperatorRegister, OperatorResponse, OperatorUpdate, OtpSentResponse, RiderLogin, TokenResponse, VerifyOtpRequest
+from app.schemas.auth import ForgotPasswordRequest, GoogleSignIn, OperatorLogin, OperatorRegister, OperatorResponse, OperatorUpdate, OtpSentResponse, ResetPasswordRequest, RiderLogin, TokenResponse, VerifyOtpRequest
 from app.schemas.rider import RiderResponse
 from app.services.auth_service import AuthService
 
@@ -38,6 +38,22 @@ async def resend_otp(
     service: AuthService = Depends(get_auth_service),
 ) -> OtpSentResponse:
     return await service.resend_otp(payload.email)
+
+
+@router.post("/forgot-password", response_model=OtpSentResponse, status_code=status.HTTP_200_OK)
+async def forgot_password(
+    payload: ForgotPasswordRequest,
+    service: AuthService = Depends(get_auth_service),
+) -> OtpSentResponse:
+    return await service.forgot_password(payload.email)
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+async def reset_password(
+    payload: ResetPasswordRequest,
+    service: AuthService = Depends(get_auth_service),
+) -> None:
+    await service.reset_password(payload.email, payload.code, payload.new_password)
 
 
 @router.post("/operator/login", response_model=TokenResponse)

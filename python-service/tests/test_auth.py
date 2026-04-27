@@ -2,6 +2,7 @@ import pytest
 
 from app.repositories.operator_repo import OperatorRepository
 from app.repositories.otp_repo import OtpRepository
+from app.repositories.password_reset_repo import PasswordResetRepository
 from app.repositories.rider_repo import RiderRepository
 from app.schemas.auth import OperatorRegister
 from app.services.auth_service import AuthService
@@ -13,6 +14,7 @@ def _make_service(db):
         operator_repo=OperatorRepository(db),
         rider_repo=RiderRepository(db),
         otp_repo=OtpRepository(db),
+        password_reset_repo=PasswordResetRepository(db),
     )
 
 

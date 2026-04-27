@@ -53,3 +53,7 @@ class OperatorRepository(BaseRepository):
         await self.session.commit()
         await self.session.refresh(operator)
         return operator
+
+    async def update_password(self, operator: Operator, hashed_password: str) -> None:
+        operator.hashed_password = hashed_password
+        await self.session.commit()

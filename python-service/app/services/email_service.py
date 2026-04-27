@@ -35,6 +35,15 @@ def _send(to: str, subject: str, html: str) -> None:
         logger.error("Failed to send email to %s: %s", to, exc)
 
 
+def send_password_reset_email(operator_email: str, operator_name: str, code: str) -> None:
+    html = _render("password_reset.html", operator_name=operator_name, code=code)
+    _send(
+        to=operator_email,
+        subject=f"{code} is your Delivra password reset code",
+        html=html,
+    )
+
+
 def send_otp_email(operator_email: str, operator_name: str, code: str) -> None:
     html = _render("otp_verification.html", operator_name=operator_name, code=code)
     _send(
