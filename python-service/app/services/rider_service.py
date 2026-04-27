@@ -1,10 +1,13 @@
+import asyncio
 import uuid
 
+from app.core.config import settings
 from app.core.exceptions import AppException
 from app.core.security import hash_password
 from app.models.operator import Operator
 from app.repositories.rider_repo import RiderRepository
 from app.schemas.rider import RiderCreate, RiderResponse
+from app.services.email_service import send_rider_credentials_email
 
 
 class RiderService:
@@ -17,7 +20,23 @@ class RiderService:
             name=payload.name,
             phone=payload.phone,
             hashed_password=hash_password(payload.password),
+            email=payload.email,
         )
+
+        if payload.email:
+            login_url = f"{settings.app_base_url}/rider/login"
+            asyncio.create_task(
+                asyncio.to_thread(
+                    send_rider_credentials_email,
+                    rider_email=payload.email,
+                    rider_name=payload.name,
+                    operator_name=operator.name,
+                    phone=payload.phone,
+                    password=payload.password,
+                    login_url=login_url,
+                )
+            )
+
         return RiderResponse.model_validate(rider)
 
     async def list_riders(self, operator: Operator) -> list[RiderResponse]:

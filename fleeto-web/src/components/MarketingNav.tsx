@@ -13,7 +13,7 @@ export default function MarketingNav() {
     <nav className="bg-white/80 backdrop-blur-md w-full top-0 sticky z-50 border-b border-zinc-100 shadow-sm">
       <div className="flex justify-between items-center h-16 w-full px-8 max-w-7xl mx-auto">
         <div className="flex items-center gap-8">
-          <Link to="/" className="text-xl font-bold tracking-tighter text-zinc-950 uppercase">Fleeto</Link>
+          <Link to="/" className="text-xl font-bold tracking-tighter text-zinc-950 uppercase">Delivra</Link>
           <div className="hidden md:flex gap-6">
             {links.map(({ label, to }) => (
               <Link

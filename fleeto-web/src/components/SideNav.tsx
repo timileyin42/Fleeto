@@ -37,7 +37,7 @@ export default function SideNav() {
             )}
           </div>
           <div>
-            <p className="text-xl font-black tracking-widest uppercase text-on-surface">Fleeto</p>
+            <p className="text-xl font-black tracking-widest uppercase text-on-surface">Delivra</p>
             <p className="text-[10px] uppercase tracking-wider text-on-surface-variant truncate max-w-[130px]">
               {operator?.name || 'Operator'}
             </p>

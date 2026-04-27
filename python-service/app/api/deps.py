@@ -80,7 +80,7 @@ async def get_current_rider(
     return rider
 
 
-# ── Fleeto services ────────────────────────────────────────────────────────────
+# ── Delivra services ───────────────────────────────────────────────────────────
 
 async def get_auth_service(db: AsyncSession = Depends(get_db)) -> AuthService:
     return AuthService(

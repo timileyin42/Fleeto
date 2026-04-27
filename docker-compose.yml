@@ -1,21 +1,21 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: fleeto_db
+    container_name: delivra_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: fleeto
-      POSTGRES_PASSWORD: fleeto_dev
-      POSTGRES_DB: fleeto
+      POSTGRES_USER: delivra
+      POSTGRES_PASSWORD: delivra_dev
+      POSTGRES_DB: delivra
     ports:
       - "5432:5432"
     volumes:
-      - fleeto_pgdata:/var/lib/postgresql/data
+      - delivra_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fleeto"]
+      test: ["CMD-SHELL", "pg_isready -U delivra"]
       interval: 5s
       timeout: 5s
       retries: 5
 
 volumes:
-  fleeto_pgdata:
+  delivra_pgdata:

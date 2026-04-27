@@ -154,8 +154,8 @@ export default function FleetApp() {
       <footer className="bg-white w-full border-t pt-16 pb-8 border-zinc-100">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 max-w-7xl mx-auto px-8 w-full">
           <div className="flex flex-col gap-4 md:col-span-1">
-            <span className="text-lg font-black tracking-tighter text-zinc-900 uppercase">Fleeto</span>
-            <p className="text-xs tracking-wide uppercase font-semibold text-zinc-400">© 2026 Fleeto Logistics. Precise. Fast. Industrial.</p>
+            <span className="text-lg font-black tracking-tighter text-zinc-900 uppercase">Delivra</span>
+            <p className="text-xs tracking-wide uppercase font-semibold text-zinc-400">© 2026 Delivra. Precise. Fast. Industrial.</p>
           </div>
           <div className="col-span-1 md:col-span-3 flex gap-8 justify-end">
             {['Product', 'Network', 'Status', 'Legal', 'Privacy'].map((item) => (

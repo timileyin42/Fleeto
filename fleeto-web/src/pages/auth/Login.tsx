@@ -48,7 +48,7 @@ export default function Login() {
       <div className="w-full max-w-[420px] bg-surface-container-lowest rounded-xl shadow-card p-xl border border-outline-variant/30">
         {/* Header */}
         <div className="text-center mb-xl">
-          <h1 className="text-h1 font-black tracking-tighter text-primary mb-sm">Fleeto</h1>
+          <h1 className="text-h1 font-black tracking-tighter text-primary mb-sm">Delivra</h1>
           <h2 className="text-h3 text-on-surface">Welcome back</h2>
         </div>
 

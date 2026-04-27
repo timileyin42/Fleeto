@@ -179,9 +179,9 @@ export default function Pricing() {
       <footer className="bg-white w-full border-t pt-16 pb-8 border-zinc-100">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 max-w-7xl mx-auto px-8 w-full">
           <div className="flex flex-col gap-4">
-            <span className="text-lg font-black tracking-tighter text-zinc-900 uppercase">Fleeto</span>
+            <span className="text-lg font-black tracking-tighter text-zinc-900 uppercase">Delivra</span>
             <span className="text-xs tracking-wide uppercase font-semibold text-zinc-400">
-              © 2026 Fleeto Logistics. All rights reserved.
+              © 2026 Delivra. All rights reserved.
             </span>
           </div>
           <div className="flex flex-col gap-3 text-xs tracking-wide uppercase font-semibold">

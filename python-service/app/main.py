@@ -23,7 +23,7 @@ if settings.allowed_origins:
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Fleeto", version="0.1.0", max_request_size=100 * 1024 * 1024)
+    app = FastAPI(title="Delivra", version="0.1.0", max_request_size=100 * 1024 * 1024)
 
     app.add_middleware(
         CORSMiddleware,

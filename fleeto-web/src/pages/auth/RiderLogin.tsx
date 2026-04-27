@@ -34,7 +34,7 @@ export default function RiderLogin() {
           <div className="w-16 h-16 bg-on-surface rounded-2xl flex items-center justify-center mx-auto mb-md">
             <span className="material-symbols-outlined text-surface text-[32px] fill">local_shipping</span>
           </div>
-          <h1 className="text-h1 font-black tracking-tighter text-primary mb-sm">Fleeto</h1>
+          <h1 className="text-h1 font-black tracking-tighter text-primary mb-sm">Delivra</h1>
           <h2 className="text-h3 text-on-surface">Rider Login</h2>
           <p className="text-body-sm text-on-surface-variant mt-xs">Access your delivery jobs</p>
         </div>

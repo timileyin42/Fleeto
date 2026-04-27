@@ -14,8 +14,8 @@ class RiderRepository(BaseRepository):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session)
 
-    async def create(self, operator_id: uuid.UUID, name: str, phone: str, hashed_password: str) -> Rider:
-        rider = Rider(operator_id=operator_id, name=name, phone=phone, hashed_password=hashed_password)
+    async def create(self, operator_id: uuid.UUID, name: str, phone: str, hashed_password: str, email: str | None = None) -> Rider:
+        rider = Rider(operator_id=operator_id, name=name, phone=phone, hashed_password=hashed_password, email=email)
         self.session.add(rider)
         await self.session.commit()
         await self.session.refresh(rider)

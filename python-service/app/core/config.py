@@ -2,8 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "Fleeto"
-    database_url: str = "sqlite+aiosqlite:///./fleeto.db"
+    app_name: str = "Delivra"
+    database_url: str = "sqlite+aiosqlite:///./delivra.db"
 
     jwt_secret: str = "dev-secret-change-in-production"
     jwt_algorithm: str = "HS256"
@@ -22,6 +22,14 @@ class Settings(BaseSettings):
 
     # Comma-separated extra origins for CORS (production domains)
     allowed_origins: str = ""
+
+    # Paystack
+    paystack_secret_key: str = ""
+    paystack_public_key: str = ""
+
+    # Resend email
+    resend_api_key: str = ""
+    resend_from_email: str = "Delivra <noreply@delivra.online>"
 
     # Cloudflare R2 (S3-compatible object storage)
     cloudflare_r2_account_id: str = ""

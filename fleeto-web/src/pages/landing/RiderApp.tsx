@@ -17,7 +17,7 @@ export default function RiderApp() {
             </div>
             <h1 className="text-h1 font-black text-primary tracking-tighter">Built for the Road.<br />Designed for Speed.</h1>
             <p className="text-body-lg text-on-surface-variant max-w-lg">
-              The Fleeto Rider App strips away the noise. Low-data usage, offline-first reliability, and large touch targets ensure your riders spend less time tapping and more time moving.
+              The Delivra Rider App strips away the noise. Low-data usage, offline-first reliability, and large touch targets ensure your riders spend less time tapping and more time moving.
             </p>
             <div className="flex gap-4 pt-sm">
               <button className="bg-primary text-on-primary px-6 py-3 rounded-lg text-body-md font-semibold hover:opacity-90 transition-opacity">Download for iOS</button>
@@ -161,8 +161,8 @@ export default function RiderApp() {
       <footer className="bg-white w-full border-t pt-16 pb-8 border-zinc-100">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 max-w-7xl mx-auto px-8">
           <div>
-            <div className="text-lg font-black tracking-tighter text-zinc-900 mb-4 uppercase">Fleeto</div>
-            <p className="text-xs tracking-wide uppercase font-semibold text-zinc-400">© 2026 Fleeto Logistics. All rights reserved.</p>
+            <div className="text-lg font-black tracking-tighter text-zinc-900 mb-4 uppercase">Delivra</div>
+            <p className="text-xs tracking-wide uppercase font-semibold text-zinc-400">© 2026 Delivra. All rights reserved.</p>
           </div>
           {[['Product', 'Network'], ['Status', 'Legal'], ['Privacy']].map((group, i) => (
             <div key={i} className="flex flex-col gap-2">

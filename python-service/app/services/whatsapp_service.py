@@ -22,7 +22,7 @@ def _send_sync(customer_phone: str, tracking_token: str, operator_name: str) -> 
     body = (
         f"Hi! Your delivery from *{operator_name}* is confirmed. 🛵\n\n"
         f"Track your package live here:\n{tracking_url}\n\n"
-        f"_Powered by Fleeto_"
+        f"_Powered by Delivra_"
     )
 
     try:

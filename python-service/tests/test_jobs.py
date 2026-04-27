@@ -7,6 +7,7 @@ from app.models.operator import Operator
 from app.models.rider import Rider
 from app.repositories.job_repo import JobRepository
 from app.repositories.location_repo import LocationRepository
+from app.repositories.operator_repo import OperatorRepository
 from app.repositories.rider_repo import RiderRepository
 from app.schemas.job import JobCreate
 from app.services.job_service import JobService
@@ -140,11 +141,14 @@ async def test_tracking_by_token(db_session):
     tracking = TrackingService(
         job_repo=JobRepository(db_session),
         location_repo=LocationRepository(db_session),
+        operator_repo=OperatorRepository(db_session),
+        rider_repo=RiderRepository(db_session),
     )
     result = await tracking.get_by_token(job.tracking_token)
     assert result.job_id == job.id
     assert result.status == JobStatus.created
-    assert result.rider_location is None
+    assert result.last_lat is None
+    assert result.last_lng is None
 
 
 @pytest.mark.asyncio
@@ -152,6 +156,8 @@ async def test_tracking_invalid_token(db_session):
     tracking = TrackingService(
         job_repo=JobRepository(db_session),
         location_repo=LocationRepository(db_session),
+        operator_repo=OperatorRepository(db_session),
+        rider_repo=RiderRepository(db_session),
     )
     with pytest.raises(AppException) as exc_info:
         await tracking.get_by_token("not-a-real-token")

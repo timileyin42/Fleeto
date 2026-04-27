@@ -15,6 +15,7 @@ class Rider(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     operator_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("operators.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     phone: Mapped[str] = mapped_column(String(20), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     profile_picture_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)

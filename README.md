@@ -1,6 +1,6 @@
-# Fleeto — Logistics Operations Platform
+# Delivra — Logistics Operations Platform
 
-Fleeto is a full-stack logistics dispatch platform for fleet operators in Africa. Operators create and assign delivery jobs, riders manage pickups and drop-offs via a mobile-optimised web app, and customers receive a WhatsApp tracking link with a live map — no app download required.
+Delivra is a full-stack logistics dispatch platform for fleet operators in Africa. Operators create and assign delivery jobs, riders manage pickups and drop-offs via a mobile-optimised web app, and customers receive a WhatsApp tracking link with a live map — no app download required.
 
 ---
 
@@ -221,8 +221,8 @@ stateDiagram-v2
 ## Project Structure
 
 ```
-Fleeto/
-├── fleeto-web/                  # React frontend (Vite + TypeScript)
+Delivra/
+├── delivra-web/                  # React frontend (Vite + TypeScript)
 │   └── src/
 │       ├── api/                 # Axios API clients
 │       │   ├── auth.ts
@@ -348,7 +348,7 @@ uvicorn app.main:app --reload
 ### Frontend
 
 ```bash
-cd fleeto-web
+cd delivra-web
 
 # Install dependencies
 npm install
@@ -365,7 +365,7 @@ npm run dev
 
 **Backend (`python-service/.env`)**
 ```env
-DATABASE_URL=postgresql+asyncpg://fleeto:fleeto_dev@localhost:5432/fleeto
+DATABASE_URL=postgresql+asyncpg://delivra:delivra_dev@localhost:5432/delivra
 JWT_SECRET=your_jwt_secret
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=1440
@@ -377,11 +377,11 @@ APP_BASE_URL=http://localhost:3000
 cloudflare_r2_account_id=your_account_id
 cloudflare_r2_access_key_id=your_access_key
 cloudflare_r2_secret_access_key=your_secret_key
-cloudflare_r2_bucket_name=fleeto-assets
+cloudflare_r2_bucket_name=delivra-assets
 cloudflare_r2_public_url=https://pub-xxxx.r2.dev
 ```
 
-**Frontend (`fleeto-web/.env`)**
+**Frontend (`delivra-web/.env`)**
 ```env
 VITE_API_URL=http://localhost:8000/api/v1
 VITE_FIREBASE_API_KEY=
@@ -403,7 +403,7 @@ VITE_FIREBASE_APP_ID=
 4. After first deploy, run: `alembic upgrade head`
 
 ### Frontend — Vercel
-1. Connect GitHub repo, set root directory to `fleeto-web`
+1. Connect GitHub repo, set root directory to `delivra-web`
 2. Build command: `npm run build` · Output: `dist`
 3. Set `VITE_API_URL` to your FastAPI Cloud backend URL
 

@@ -11,7 +11,7 @@ export default function LandingPage() {
       {/* TopAppBar */}
       <header className="bg-white/90 backdrop-blur-md fixed top-0 w-full z-50 border-b border-zinc-100 shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
         <div className="flex justify-between items-center h-16 px-8 max-w-7xl mx-auto">
-          <div className="text-xl font-bold tracking-tighter text-zinc-900">Fleeto</div>
+          <div className="text-xl font-bold tracking-tighter text-zinc-900">Delivra</div>
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#" className="text-sm font-medium tracking-tight text-zinc-900 border-b-2 border-zinc-900 pb-1 transition-transform active:scale-[0.98]">Solutions</a>
             <Link to="/fleet-app" className="text-sm font-medium tracking-tight text-zinc-500 hover:text-zinc-900 transition-colors duration-200">Fleet App</Link>
@@ -31,7 +31,7 @@ export default function LandingPage() {
           <div className="space-y-md">
             <span className="inline-block text-label-caps font-semibold text-secondary-fixed-dim bg-secondary-container px-3 py-1 rounded-full uppercase tracking-[0.05em]">TRANSFORMING LOGISTICS</span>
             <h1 className="text-h1 font-black text-on-background leading-[1.1] tracking-tighter">Lagos Logistics, Simplified. The infrastructure for your delivery business.</h1>
-            <p className="text-body-lg text-secondary max-w-lg">From managing a fleet to starting your first delivery service, Fleeto gives you the tools to move Lagos forward.</p>
+            <p className="text-body-lg text-secondary max-w-lg">From managing a fleet to starting your first delivery service, Delivra gives you the tools to move Lagos forward.</p>
             <div className="flex flex-wrap gap-md pt-sm">
               <Link to="/signup" className="bg-primary text-on-primary px-8 py-4 rounded-xl text-body-md font-semibold hover:opacity-90 transition-all shadow-[0px_4px_12px_rgba(0,0,0,0.1)]">Get Started</Link>
               <button className="bg-zinc-100 text-primary px-8 py-4 rounded-xl text-body-md font-semibold hover:bg-zinc-200 transition-all">See how it works</button>
@@ -156,10 +156,10 @@ export default function LandingPage() {
       {/* Final CTA */}
       <section className="bg-zinc-50 py-xxl text-center px-margin border-t border-zinc-200">
         <h2 className="text-h1 font-black text-on-background tracking-tighter mb-md">Ready to move Lagos?</h2>
-        <p className="text-body-lg text-secondary max-w-2xl mx-auto mb-xl">Join hundreds of businesses scaling their logistics operations with Fleeto's infrastructure.</p>
+        <p className="text-body-lg text-secondary max-w-2xl mx-auto mb-xl">Join hundreds of businesses scaling their logistics operations with Delivra's infrastructure.</p>
         <div className="flex flex-col sm:flex-row justify-center gap-md">
           <Link to="/signup" className="bg-primary text-on-primary px-10 py-5 rounded-xl text-body-md font-bold hover:opacity-90 transition-all">Create Account</Link>
-          <a href="mailto:hello@fleeto.ng" className="bg-white border border-zinc-200 text-primary px-10 py-5 rounded-xl text-body-md font-bold hover:bg-zinc-50 transition-all">Contact Sales</a>
+          <a href="mailto:hello@delivra.online" className="bg-white border border-zinc-200 text-primary px-10 py-5 rounded-xl text-body-md font-bold hover:bg-zinc-50 transition-all">Contact Sales</a>
         </div>
       </section>
 
@@ -167,8 +167,8 @@ export default function LandingPage() {
       <footer className="w-full border-t border-zinc-200 bg-zinc-50">
         <div className="max-w-7xl mx-auto px-8 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-col gap-2">
-            <span className="font-bold text-zinc-900 text-lg">Fleeto</span>
-            <p className="text-xs uppercase tracking-widest text-zinc-600">© 2026 Fleeto Logistics. Moving Lagos forward.</p>
+            <span className="font-bold text-zinc-900 text-lg">Delivra</span>
+            <p className="text-xs uppercase tracking-widest text-zinc-600">© 2026 Delivra. Moving Lagos forward.</p>
           </div>
           <div className="flex gap-8">
             {['Privacy', 'Terms', 'Contact'].map((item) => (

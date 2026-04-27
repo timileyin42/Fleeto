@@ -13,12 +13,14 @@ class RiderCreate(BaseModel):
     name: str
     phone: str
     password: str
+    email: Optional[str] = None
 
 
 class RiderResponse(BaseModel):
     id: uuid.UUID
     operator_id: uuid.UUID
     name: str
+    email: Optional[str]
     phone: str
     status: RiderStatus
     profile_picture_url: Optional[str]

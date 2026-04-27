@@ -72,7 +72,7 @@ export default function TrackingPage() {
       {/* Floating header */}
       <header className="absolute top-0 left-0 w-full p-6 z-20 flex justify-between items-center pointer-events-none">
         <div className="bg-surface/90 backdrop-blur-md px-6 py-3 rounded-full shadow-card pointer-events-auto border border-outline-variant/20">
-          <span className="text-h3 font-black tracking-widest uppercase text-primary">Fleeto</span>
+          <span className="text-h3 font-black tracking-widest uppercase text-primary">Delivra</span>
         </div>
         {info?.status === 'in_transit' && (
           <div className="bg-surface/90 backdrop-blur-md px-4 py-2 rounded-full shadow-card border border-outline-variant/20 flex items-center gap-2 pointer-events-auto">
@@ -186,7 +186,7 @@ export default function TrackingPage() {
           )}
 
           <p className="text-[10px] text-on-surface-variant text-center">
-            Powered by <strong>Fleeto</strong> · {info?.operator_name}
+            Powered by <strong>Delivra</strong> · {info?.operator_name}
           </p>
         </div>
       </div>
