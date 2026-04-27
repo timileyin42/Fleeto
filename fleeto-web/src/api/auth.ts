@@ -40,6 +40,12 @@ export const verifyOtp = (email: string, code: string) =>
 export const resendOtp = (email: string) =>
   client.post<OtpSentResponse>('/auth/resend-otp', { email, code: '' })
 
+export const forgotPassword = (email: string) =>
+  client.post<OtpSentResponse>('/auth/forgot-password', { email })
+
+export const resetPassword = (email: string, code: string, new_password: string) =>
+  client.post('/auth/reset-password', { email, code, new_password })
+
 export const googleSignIn = (idToken: string) =>
   client.post<LoginResponse>('/auth/google', { id_token: idToken })
 

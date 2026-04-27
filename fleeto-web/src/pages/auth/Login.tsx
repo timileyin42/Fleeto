@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { loginOperator, googleSignIn } from '../../api/auth'
 import { signInWithGoogle } from '../../lib/firebase'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function Login() {
+  const [searchParams] = useSearchParams()
+  const resetSuccess = searchParams.get('reset') === 'success'
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -52,6 +55,12 @@ export default function Login() {
           <h2 className="text-h3 text-on-surface">Welcome back</h2>
         </div>
 
+        {resetSuccess && (
+          <p className="text-body-sm text-center mb-lg px-sm py-sm rounded-lg bg-surface-container" style={{ color: '#059669' }}>
+            Password reset — you can now log in with your new password.
+          </p>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-lg">
           <div className="flex flex-col gap-xs">
@@ -74,9 +83,9 @@ export default function Login() {
               <label className="font-mono text-mono-label text-on-surface-variant uppercase" htmlFor="password">
                 Password
               </label>
-              <a href="#" className="text-body-sm text-on-surface-variant hover:text-primary transition-colors">
+              <Link to="/forgot-password" className="text-body-sm text-on-surface-variant hover:text-primary transition-colors">
                 Forgot password?
-              </a>
+              </Link>
             </div>
             <input
               id="password"

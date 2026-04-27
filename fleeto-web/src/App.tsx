@@ -10,6 +10,8 @@ import Pricing from './pages/landing/Pricing'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
 import VerifyEmail from './pages/auth/VerifyEmail'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import ResetPassword from './pages/auth/ResetPassword'
 import RiderLogin from './pages/auth/RiderLogin'
 
 import Dashboard from './pages/operator/Dashboard'
@@ -34,6 +36,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/rider/login" element={<RiderLogin />} />
 
           {/* Operator dashboard */}
