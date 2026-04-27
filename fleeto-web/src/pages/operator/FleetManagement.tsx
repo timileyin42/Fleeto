@@ -15,6 +15,7 @@ export default function FleetManagement() {
   const [showModal, setShowModal] = useState(false)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -31,8 +32,8 @@ export default function FleetManagement() {
     setError('')
     setSaving(true)
     try {
-      await createRider({ name, phone, password })
-      setName(''); setPhone(''); setPassword('')
+      await createRider({ name, phone, password, ...(email ? { email } : {}) })
+      setName(''); setPhone(''); setEmail(''); setPassword('')
       setShowModal(false)
       load()
     } catch (err: any) {
@@ -74,6 +75,7 @@ export default function FleetManagement() {
               <tr className="border-b border-outline-variant/30">
                 <th className="text-left px-lg py-md text-mono-label font-mono uppercase text-on-surface-variant">Rider</th>
                 <th className="text-left px-lg py-md text-mono-label font-mono uppercase text-on-surface-variant">Phone</th>
+                <th className="text-left px-lg py-md text-mono-label font-mono uppercase text-on-surface-variant">Email</th>
                 <th className="text-left px-lg py-md text-mono-label font-mono uppercase text-on-surface-variant">Status</th>
               </tr>
             </thead>
@@ -93,6 +95,7 @@ export default function FleetManagement() {
                     </div>
                   </td>
                   <td className="px-lg py-md text-body-md text-on-surface-variant">{rider.phone}</td>
+                  <td className="px-lg py-md text-body-md text-on-surface-variant">{rider.email || <span className="text-outline">—</span>}</td>
                   <td className="px-lg py-md">
                     <span className={`px-3 py-1 rounded-full text-label-caps font-semibold uppercase ${STATUS_BADGE[rider.status]}`}>
                       {rider.status}
@@ -129,6 +132,14 @@ export default function FleetManagement() {
                 <input
                   required value={phone} onChange={(e) => setPhone(e.target.value)}
                   placeholder="+2348012345678"
+                  className="border border-outline-variant rounded-xl px-md py-3 text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div className="flex flex-col gap-xs">
+                <label className="font-mono text-mono-label text-on-surface-variant uppercase">Email Address <span className="normal-case text-outline">(optional — for login & notifications)</span></label>
+                <input
+                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="rider@email.com"
                   className="border border-outline-variant rounded-xl px-md py-3 text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>

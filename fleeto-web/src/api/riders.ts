@@ -4,6 +4,7 @@ export interface Rider {
   id: string
   name: string
   phone: string
+  email: string | null
   status: 'available' | 'busy' | 'offline'
   profile_picture_url: string | null
   operator_id: string
@@ -13,6 +14,7 @@ export interface CreateRiderPayload {
   name: string
   phone: string
   password: string
+  email?: string
 }
 
 export const listRiders = () => client.get<Rider[]>('/riders')
