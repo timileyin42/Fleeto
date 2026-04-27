@@ -48,12 +48,13 @@ async def forgot_password(
     return await service.forgot_password(payload.email)
 
 
-@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/reset-password", response_model=OtpSentResponse, status_code=status.HTTP_200_OK)
 async def reset_password(
     payload: ResetPasswordRequest,
     service: AuthService = Depends(get_auth_service),
-) -> None:
+) -> OtpSentResponse:
     await service.reset_password(payload.email, payload.code, payload.new_password)
+    return OtpSentResponse(message="Password reset successfully", email=payload.email)
 
 
 @router.post("/operator/login", response_model=TokenResponse)
