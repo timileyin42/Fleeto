@@ -16,6 +16,8 @@ const STATUS_COLOR: Record<string, string> = {
   delivered: 'bg-green-100 text-green-800',
 }
 
+const TRACKING_STATUSES = new Set(['picked_up', 'in_transit'])
+
 export default function RiderJobDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -23,26 +25,46 @@ export default function RiderJobDetail() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [gpsActive, setGpsActive] = useState(false)
+  const [gpsError, setGpsError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null)
 
   useEffect(() => {
     if (!id) return
     getRiderJob(id).then((r) => setJob(r.data)).finally(() => setLoading(false))
   }, [id])
 
-  // Broadcast GPS while in_transit
+  // Broadcast GPS while rider is en-route (picked_up or in_transit)
   useEffect(() => {
-    if (!job || job.status !== 'in_transit' || !id) return
-    if (!navigator.geolocation) return
+    if (!job || !TRACKING_STATUSES.has(job.status) || !id) return
+    if (!navigator.geolocation) {
+      setGpsError('GPS not available on this device.')
+      return
+    }
 
+    setGpsError('')
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
+        setGpsActive(true)
         pingLocation(id, pos.coords.latitude, pos.coords.longitude).catch(() => null)
       },
-      null,
+      () => {
+        setGpsActive(false)
+        setGpsError('Location permission denied. The customer cannot see your position.')
+      },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
     )
-    return () => navigator.geolocation.clearWatch(watchId)
+
+    // Keep screen on while tracking (graceful no-op if not supported)
+    navigator.wakeLock?.request('screen').then((lock) => { wakeLockRef.current = lock }).catch(() => null)
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId)
+      setGpsActive(false)
+      wakeLockRef.current?.release().catch(() => null)
+      wakeLockRef.current = null
+    }
   }, [job?.status, id])
 
   const handleStatusUpdate = async () => {
@@ -96,6 +118,20 @@ export default function RiderJobDetail() {
       </header>
 
       <div className="flex-1 overflow-y-auto p-lg flex flex-col gap-md">
+        {/* GPS tracking indicator */}
+        {gpsActive && (
+          <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-md py-sm">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
+            <p className="text-body-sm text-green-800 font-medium">Live location sharing active — keep this page open</p>
+          </div>
+        )}
+        {gpsError && (
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-md py-sm">
+            <span className="material-symbols-outlined text-amber-600 text-[18px] shrink-0">location_off</span>
+            <p className="text-body-sm text-amber-800">{gpsError}</p>
+          </div>
+        )}
+
         {/* Status badge */}
         <div className="flex items-center justify-between">
           <p className="text-mono-label font-mono uppercase text-on-surface-variant">Job #{job.id.slice(0, 8)}</p>
