@@ -75,52 +75,69 @@ function calcBearing(from: [number, number], to: [number, number]): number {
 function makeRiderIcon(deg: number) {
   return L.divIcon({
     className: '',
-    html: `<div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;">
-      <div style="transform:rotate(${deg}deg);width:48px;height:48px;display:flex;align-items:center;justify-content:center;">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="24" cy="24" r="24" fill="#1558D6" fill-opacity="0.15"/>
-          <circle cx="24" cy="24" r="17" fill="#1558D6"/>
-          <path d="M24 11 L30 33 L24 28.5 L18 33 Z" fill="white"/>
-        </svg>
-      </div>
-    </div>`,
-    iconSize: [48, 48],
-    iconAnchor: [24, 24],
+    html: `
+      <div style="position:relative;width:52px;height:52px;display:flex;align-items:center;justify-content:center;">
+        <!-- outer pulse ring -->
+        <div style="position:absolute;width:52px;height:52px;border-radius:50%;background:rgba(26,115,232,0.18);"></div>
+        <!-- direction arrow -->
+        <div style="position:absolute;transform:rotate(${deg}deg);width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="18" fill="#1A73E8"/>
+            <path d="M18 8 L24 26 L18 21.5 L12 26 Z" fill="white"/>
+          </svg>
+        </div>
+      </div>`,
+    iconSize: [52, 52],
+    iconAnchor: [26, 26],
   })
 }
 
 function makePickupIcon() {
   return L.divIcon({
     className: '',
-    html: `<div style="width:22px;height:22px;background:#22c55e;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.35);"/>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    html: `<div style="width:18px;height:18px;background:#34A853;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"/>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
   })
 }
 
 function makeDropoffIcon() {
   return L.divIcon({
     className: '',
-    html: `<svg width="30" height="40" viewBox="0 0 30 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 0C6.716 0 0 6.716 0 15c0 10.5 15 25 15 25S30 25.5 30 15C30 6.716 23.284 0 15 0z" fill="#ef4444"/>
-      <circle cx="15" cy="15" r="7" fill="white"/>
+    html: `<svg width="28" height="38" viewBox="0 0 28 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 0C6.268 0 0 6.268 0 14c0 9.8 14 24 14 24S28 23.8 28 14C28 6.268 21.732 0 14 0z" fill="#EA4335"/>
+      <circle cx="14" cy="14" r="6" fill="white"/>
     </svg>`,
-    iconSize: [30, 40],
-    iconAnchor: [15, 40],
+    iconSize: [28, 38],
+    iconAnchor: [14, 38],
   })
 }
 
-function MapFitter({ coords }: { coords: [number, number][] }) {
+// Centers the map on the rider once when they first appear, then hands control back to the user
+function MapController({
+  riderPos,
+  fallbackCoords,
+}: {
+  riderPos: [number, number] | null
+  fallbackCoords: [number, number][]
+}) {
   const map = useMap()
-  const fitted = useRef(false)
+  const initialised = useRef(false)
+
   useEffect(() => {
-    if (coords.length >= 2 && !fitted.current) {
+    if (initialised.current) return
+
+    if (riderPos) {
+      map.setView(riderPos, 15, { animate: false })
+      initialised.current = true
+    } else if (fallbackCoords.length >= 2) {
       try {
-        map.fitBounds(L.latLngBounds(coords), { padding: [70, 70], maxZoom: 16 })
-        fitted.current = true
+        map.fitBounds(L.latLngBounds(fallbackCoords), { padding: [60, 60], maxZoom: 15 })
+        initialised.current = true
       } catch {}
     }
-  }, [coords, map])
+  }, [riderPos, fallbackCoords, map])
+
   return null
 }
 
@@ -163,13 +180,13 @@ export default function TrackingPage() {
     })
   }, [info])
 
-  // Fetch road-following route when both endpoints are known
+  // Road-following route between pickup and dropoff
   useEffect(() => {
     if (!pickupCoords || !dropoffCoords) return
     fetchRoute(pickupCoords, dropoffCoords).then(setRouteCoords)
   }, [pickupCoords, dropoffCoords])
 
-  // Update rider bearing + ETA whenever the rider moves
+  // Bearing + ETA update on every rider position change
   useEffect(() => {
     if (!info?.last_lat || !info?.last_lng) return
     const pos: [number, number] = [info.last_lat, info.last_lng]
@@ -179,7 +196,6 @@ export default function TrackingPage() {
     prevRiderPos.current = pos
   }, [info?.last_lat, info?.last_lng])
 
-  // ETA: route from rider's current position to dropoff
   useEffect(() => {
     if (!info?.last_lat || !info?.last_lng || !dropoffCoords) return
     if (info.status === 'delivered' || info.status === 'cancelled') return
@@ -190,16 +206,14 @@ export default function TrackingPage() {
 
   const currentStep = info ? STATUS_STEPS.indexOf(info.status) : 0
   const hasRider = !!(info?.last_lat && info?.last_lng)
-  const center: [number, number] = hasRider
-    ? [info!.last_lat!, info!.last_lng!]
-    : pickupCoords ?? [6.5244, 3.3792]
+  const riderPos: [number, number] | null = hasRider ? [info!.last_lat!, info!.last_lng!] : null
 
-  const fitCoords: [number, number][] = routeCoords.length >= 2
-    ? routeCoords
-    : ([pickupCoords, dropoffCoords, hasRider ? ([info!.last_lat!, info!.last_lng!] as [number, number]) : null]
-        .filter(Boolean) as [number, number][])
+  const fallbackCoords: [number, number][] = (
+    [pickupCoords, dropoffCoords].filter(Boolean) as [number, number][]
+  )
 
-  const showEta = eta !== null && hasRider && info?.status !== 'delivered' && info?.status !== 'cancelled'
+  const showEta =
+    eta !== null && hasRider && info?.status !== 'delivered' && info?.status !== 'cancelled'
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -232,50 +246,48 @@ export default function TrackingPage() {
         )}
       </header>
 
-      {/* Map */}
+      {/* Map — clean white Google-style tiles */}
       <div className="flex-1 relative" style={{ minHeight: '60vh' }}>
         <MapContainer
-          center={center}
-          zoom={13}
+          center={riderPos ?? pickupCoords ?? [6.5244, 3.3792]}
+          zoom={riderPos ? 15 : 13}
           className="w-full h-full"
           style={{ minHeight: '60vh' }}
           zoomControl={false}
         >
+          {/* CartoDB Positron — white minimal tiles, closest to Google Maps look */}
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           />
 
-          <MapFitter coords={fitCoords} />
+          <MapController riderPos={riderPos} fallbackCoords={fallbackCoords} />
 
-          {/* Road-following route line */}
+          {/* Route line in Google blue */}
           {routeCoords.length > 1 && (
             <Polyline
               positions={routeCoords}
-              pathOptions={{ color: '#1558D6', weight: 5, opacity: 0.75 }}
+              pathOptions={{ color: '#1A73E8', weight: 6, opacity: 0.85 }}
             />
           )}
 
-          {/* Pickup pin (green dot) */}
+          {/* Pickup pin */}
           {pickupCoords && (
             <Marker position={pickupCoords} icon={makePickupIcon()}>
               <Popup><strong>Pickup</strong><br />{info?.pickup_address}</Popup>
             </Marker>
           )}
 
-          {/* Dropoff pin (red teardrop) */}
+          {/* Dropoff pin */}
           {dropoffCoords && (
             <Marker position={dropoffCoords} icon={makeDropoffIcon()}>
               <Popup><strong>Dropoff</strong><br />{info?.dropoff_address}</Popup>
             </Marker>
           )}
 
-          {/* Rider arrow — rotates with direction of travel */}
-          {hasRider && (
-            <Marker
-              position={[info!.last_lat!, info!.last_lng!]}
-              icon={makeRiderIcon(riderBearing)}
-            >
+          {/* Rider — blue arrow rotating with direction of travel */}
+          {riderPos && (
+            <Marker position={riderPos} icon={makeRiderIcon(riderBearing)}>
               <Popup>
                 {info?.rider_name || 'Rider'}
                 {info?.last_seen && <><br />Last seen {new Date(info.last_seen).toLocaleTimeString()}</>}
@@ -292,15 +304,15 @@ export default function TrackingPage() {
         </div>
 
         <div className="px-lg pb-8 pt-md flex flex-col gap-lg">
-          {/* ETA card — shown when rider is en-route */}
+          {/* ETA card */}
           {showEta && (
-            <div className="bg-primary/10 border border-primary/20 rounded-2xl px-lg py-md flex items-center gap-md">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-on-primary text-[20px]">schedule</span>
+            <div className="bg-[#E8F0FE] border border-[#1A73E8]/20 rounded-2xl px-lg py-md flex items-center gap-md">
+              <div className="w-10 h-10 rounded-full bg-[#1A73E8] flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-white text-[20px]">schedule</span>
               </div>
               <div>
-                <p className="text-mono-label font-mono uppercase text-on-surface-variant text-[10px]">Estimated arrival</p>
-                <p className="text-h2 font-black text-primary leading-tight">{formatEta(eta!)}</p>
+                <p className="text-mono-label font-mono uppercase text-[#1A73E8]/70 text-[10px]">Estimated arrival</p>
+                <p className="text-h2 font-black text-[#1A73E8] leading-tight">{formatEta(eta!)}</p>
               </div>
             </div>
           )}
@@ -346,7 +358,7 @@ export default function TrackingPage() {
           {/* Route addresses */}
           <div className="bg-surface-container rounded-xl p-md flex flex-col gap-sm">
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-green-500 text-[18px] mt-0.5">trip_origin</span>
+              <span className="material-symbols-outlined text-[#34A853] text-[18px] mt-0.5">trip_origin</span>
               <div>
                 <p className="text-mono-label font-mono uppercase text-on-surface-variant text-[10px]">From</p>
                 <p className="text-body-sm text-on-surface">{info?.pickup_address}</p>
@@ -354,7 +366,7 @@ export default function TrackingPage() {
             </div>
             <div className="border-l-2 border-dashed border-outline-variant ml-2 h-3" />
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-red-500 text-[18px] mt-0.5">location_on</span>
+              <span className="material-symbols-outlined text-[#EA4335] text-[18px] mt-0.5">location_on</span>
               <div>
                 <p className="text-mono-label font-mono uppercase text-on-surface-variant text-[10px]">To</p>
                 <p className="text-body-sm text-on-surface">{info?.dropoff_address}</p>
