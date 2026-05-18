@@ -180,14 +180,18 @@ class AuthService:
 
     async def login_operator(self, email: str, password: str) -> TokenResponse:
         operator = await self.operator_repo.get_by_email(email)
-        if not operator or not verify_password(password, operator.hashed_password or ""):
+        if not operator or not operator.hashed_password:
+            raise AppException(detail="Invalid credentials", code="invalid_credentials", status_code=401)
+        if not verify_password(password, operator.hashed_password):
             raise AppException(detail="Invalid credentials", code="invalid_credentials", status_code=401)
         token = create_access_token(f"operator:{operator.id}")
         return TokenResponse(access_token=token)
 
     async def login_rider(self, phone: str, password: str) -> TokenResponse:
         rider = await self.rider_repo.get_by_phone(phone)
-        if not rider or not verify_password(password, rider.hashed_password):
+        if not rider or not rider.hashed_password:
+            raise AppException(detail="Invalid credentials", code="invalid_credentials", status_code=401)
+        if not verify_password(password, rider.hashed_password):
             raise AppException(detail="Invalid credentials", code="invalid_credentials", status_code=401)
         token = create_access_token(f"rider:{rider.id}")
         return TokenResponse(access_token=token)
