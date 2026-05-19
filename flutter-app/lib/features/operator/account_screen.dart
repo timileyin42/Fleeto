@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/api_client.dart';
 import '../../core/auth_provider.dart';
 import '../../core/theme.dart';
@@ -346,59 +347,227 @@ class _BillingSheet extends StatefulWidget {
 }
 
 class _BillingSheetState extends State<_BillingSheet> {
-  Map<String, dynamic>? _status;
+  Map<String, dynamic>? _data;
   bool _loading = true;
   String _error = '';
+  String? _upgrading;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     try {
       final r = await ApiClient.dio.get('/billing/status');
-      setState(() { _status = r.data as Map<String, dynamic>; _loading = false; });
+      setState(() { _data = r.data as Map<String, dynamic>; _loading = false; });
     } on DioException catch (e) {
       setState(() { _error = e.response?.data?['detail'] ?? 'Could not load billing info.'; _loading = false; });
     }
   }
 
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(24),
-    child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Text('Billing & Plan', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-      const SizedBox(height: 20),
-      if (_loading)
-        const Center(child: Padding(
-          padding: EdgeInsets.all(24),
-          child: CircularProgressIndicator()))
-      else if (_error.isNotEmpty)
-        Text(_error, style: const TextStyle(color: AppColors.onSurfaceVariant))
-      else ...[
-        _row('Current Plan', _capitalize(_status?['plan'] ?? 'free')),
-        const Divider(height: 24, color: AppColors.border),
-        _row('Status', _capitalize(_status?['status'] ?? '—')),
-        const Divider(height: 24, color: AppColors.border),
-        _row('Active Riders', '${_status?['active_riders'] ?? '—'}'),
-        if (_status?['next_billing_date'] != null) ...[
-          const Divider(height: 24, color: AppColors.border),
-          _row('Next Billing', _status!['next_billing_date'].toString().split('T').first),
-        ],
-      ],
-      const SizedBox(height: 8),
-    ]),
-  );
+  Future<void> _upgrade(String plan) async {
+    setState(() => _upgrading = plan);
+    try {
+      final r = await ApiClient.dio.post('/billing/subscribe', data: {'plan': plan});
+      final url = r.data['checkout_url'] as String?;
+      if (url != null && mounted) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.response?.data?['detail'] ?? 'Could not start checkout.')));
+      }
+    } finally {
+      if (mounted) setState(() => _upgrading = null);
+    }
+  }
 
-  Widget _row(String label, String value) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(label, style: const TextStyle(fontSize: 14, color: AppColors.onSurfaceVariant)),
-      Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-    ],
-  );
+  @override
+  Widget build(BuildContext context) {
+    final plan = _data?['plan'] as String? ?? '';
+    final activeRiders = _data?['active_riders'] as int? ?? 0;
+    final payments = (_data?['payments'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.75,
+      minChildSize: 0.5,
+      maxChildSize: 0.92,
+      expand: false,
+      builder: (_, ctrl) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Center(child: Container(
+            width: 36, height: 4,
+            decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)))),
+          const SizedBox(height: 16),
+          const Text('Billing & Plan', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 20),
+          if (_loading)
+            const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
+          else if (_error.isNotEmpty)
+            Text(_error, style: const TextStyle(color: AppColors.onSurfaceVariant))
+          else
+            Expanded(child: ListView(controller: ctrl, children: [
+              // Plan badge + stats
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: _planColor(plan).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: _planColor(plan).withValues(alpha: 0.3)),
+                ),
+                child: Row(children: [
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('CURRENT PLAN', style: TextStyle(
+                      fontSize: 10, fontWeight: FontWeight.w700,
+                      color: _planColor(plan), letterSpacing: 1.2)),
+                    const SizedBox(height: 4),
+                    Text(_capitalize(plan), style: TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.w800, color: _planColor(plan))),
+                  ])),
+                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text('$activeRiders', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                    const Text('Active Riders', style: TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                  ]),
+                ]),
+              ),
+
+              // Upgrade section
+              if (plan != 'business') ...[
+                const SizedBox(height: 24),
+                const Text('UPGRADE PLAN', style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.w700,
+                  color: AppColors.onSurfaceVariant, letterSpacing: 1.5)),
+                const SizedBox(height: 12),
+                if (plan != 'growth')
+                  _PlanCard(
+                    name: 'Growth', price: '₦15,000/mo',
+                    perks: const ['Up to 20 riders', 'Priority support', 'Analytics'],
+                    color: const Color(0xFF2196F3),
+                    loading: _upgrading == 'growth',
+                    onTap: () => _upgrade('growth'),
+                  ),
+                if (plan != 'growth') const SizedBox(height: 10),
+                _PlanCard(
+                  name: 'Business', price: '₦50,000/mo',
+                  perks: const ['Unlimited riders', 'Dedicated support', 'Advanced analytics'],
+                  color: const Color(0xFFFF9800),
+                  loading: _upgrading == 'business',
+                  onTap: () => _upgrade('business'),
+                ),
+              ],
+
+              // Payment history
+              if (payments.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                const Text('PAYMENT HISTORY', style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.w700,
+                  color: AppColors.onSurfaceVariant, letterSpacing: 1.5)),
+                const SizedBox(height: 12),
+                Material(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border)),
+                    child: Column(
+                      children: payments.asMap().entries.map((e) {
+                        final p = e.value;
+                        final isLast = e.key == payments.length - 1;
+                        final amt = (p['amount'] as int? ?? 0) ~/ 100;
+                        final date = (p['created_at'] as String? ?? '').split('T').first;
+                        final status = p['status'] as String? ?? '';
+                        final ok = status == 'success';
+                        return Column(children: [
+                          ListTile(
+                            dense: true,
+                            title: Text(_capitalize(p['plan'] as String? ?? ''),
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                            subtitle: Text('${p['reference']}  ·  $date',
+                              style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant)),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('₦${amt.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}',
+                                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: (ok ? const Color(0xFF4CAF50) : AppColors.onSurfaceVariant).withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(20)),
+                                  child: Text(status.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 9, fontWeight: FontWeight.w700,
+                                      color: ok ? const Color(0xFF4CAF50) : AppColors.onSurfaceVariant)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (!isLast) const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.border),
+                        ]);
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+            ])),
+        ]),
+      ),
+    );
+  }
+
+  Color _planColor(String plan) {
+    switch (plan) {
+      case 'growth': return const Color(0xFF2196F3);
+      case 'business': return const Color(0xFFFF9800);
+      default: return AppColors.onSurfaceVariant;
+    }
+  }
 
   String _capitalize(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+}
+
+class _PlanCard extends StatelessWidget {
+  final String name, price;
+  final List<String> perks;
+  final Color color;
+  final bool loading;
+  final VoidCallback onTap;
+  const _PlanCard({required this.name, required this.price, required this.perks,
+    required this.color, required this.loading, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: loading ? null : onTap,
+    child: Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(children: [
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: color)),
+          Text(price, style: TextStyle(fontSize: 13, color: color.withValues(alpha: 0.8))),
+          const SizedBox(height: 6),
+          ...perks.map((p) => Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Row(children: [
+              Icon(Icons.check_circle_outline, size: 13, color: color),
+              const SizedBox(width: 4),
+              Text(p, style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant)),
+            ]),
+          )),
+        ])),
+        const SizedBox(width: 12),
+        loading
+          ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: color))
+          : Icon(Icons.arrow_forward_rounded, color: color),
+      ]),
+    ),
+  );
 }

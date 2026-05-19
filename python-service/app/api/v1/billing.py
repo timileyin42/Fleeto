@@ -11,6 +11,7 @@ from app.services.billing_service import BillingService
 from app.core.database import get_db
 from app.repositories.payment_repo import PaymentRepository
 from app.repositories.operator_repo import OperatorRepository
+from app.repositories.rider_repo import RiderRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/billing", tags=["billing"])
@@ -20,6 +21,7 @@ def _get_billing_service(db: AsyncSession = Depends(get_db)) -> BillingService:
     return BillingService(
         payment_repo=PaymentRepository(db),
         operator_repo=OperatorRepository(db),
+        rider_repo=RiderRepository(db),
     )
 
 

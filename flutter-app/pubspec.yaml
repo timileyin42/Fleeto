@@ -1,0 +1,40 @@
+name: delivra
+description: Delivra — logistics operations platform for operators and riders
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Navigation
+  go_router: ^13.2.0
+  # State management
+  provider: ^6.1.2
+  # HTTP
+  dio: ^5.4.3+1
+  # Local storage (token)
+  shared_preferences: ^2.2.3
+  # Map
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  # GPS
+  geolocator: ^11.0.0
+  # Image picker (proof photo)
+  image_picker: ^1.1.2
+  # Open URLs in browser (billing checkout, etc.)
+  url_launcher: ^6.3.0
+  # Icons
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

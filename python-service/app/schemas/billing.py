@@ -31,4 +31,5 @@ class PaymentRecord(BaseModel):
 
 class BillingStatusResponse(BaseModel):
     plan: OperatorPlan
+    active_riders: int
     payments: List[PaymentRecord]

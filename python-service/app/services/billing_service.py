@@ -13,6 +13,7 @@ from app.models.enums import OperatorPlan
 from app.models.operator import Operator
 from app.repositories.operator_repo import OperatorRepository
 from app.repositories.payment_repo import PaymentRepository
+from app.repositories.rider_repo import RiderRepository
 from app.schemas.billing import BillingStatusResponse, PaymentRecord, SubscribeResponse
 from app.services.email_service import send_payment_success_email
 
@@ -30,9 +31,11 @@ class BillingService:
         self,
         payment_repo: PaymentRepository,
         operator_repo: OperatorRepository,
+        rider_repo: RiderRepository,
     ) -> None:
         self.payment_repo = payment_repo
         self.operator_repo = operator_repo
+        self.rider_repo = rider_repo
 
     async def initialize_payment(
         self, plan: OperatorPlan, operator: Operator
@@ -131,8 +134,13 @@ class BillingService:
             )
 
     async def get_status(self, operator: Operator) -> BillingStatusResponse:
-        payments = await self.payment_repo.list_for_operator(operator.id)
+        payments, riders = await asyncio.gather(
+            self.payment_repo.list_for_operator(operator.id),
+            self.rider_repo.list_by_operator(operator.id),
+        )
+        active_riders = sum(1 for r in riders if r.status != "offline")
         return BillingStatusResponse(
             plan=operator.plan,
+            active_riders=active_riders,
             payments=[PaymentRecord.model_validate(p) for p in payments],
         )
