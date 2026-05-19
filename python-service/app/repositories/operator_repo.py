@@ -54,6 +54,12 @@ class OperatorRepository(BaseRepository):
         await self.session.refresh(operator)
         return operator
 
+    async def update_notification_prefs(self, operator: Operator, prefs: dict) -> Operator:
+        operator.notification_prefs = prefs
+        await self.session.commit()
+        await self.session.refresh(operator)
+        return operator
+
     async def update_password(self, operator: Operator, hashed_password: str) -> None:
         operator.hashed_password = hashed_password
         await self.session.commit()

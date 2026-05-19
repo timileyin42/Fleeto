@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import DateTime, Enum, String, func
+from sqlalchemy import DateTime, Enum, JSON, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -22,6 +22,11 @@ class Operator(Base):
         Enum(OperatorPlan, native_enum=False),
         nullable=False,
         default=OperatorPlan.starter,
+    )
+    notification_prefs: Mapped[Dict[str, Any]] = mapped_column(
+        JSON,
+        nullable=False,
+        default=lambda: {"new_jobs": True, "status_updates": True, "payments": False},
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
