@@ -10,11 +10,32 @@ from app.schemas.rider import RiderCreate, RiderResponse
 from app.services.email_service import send_rider_credentials_email
 
 
+_PLAN_LIMITS: dict[str, int | None] = {
+    "starter": 2,
+    "growth": 10,
+    "business": None,   # unlimited
+}
+
+
 class RiderService:
     def __init__(self, rider_repo: RiderRepository) -> None:
         self.rider_repo = rider_repo
 
     async def add_rider(self, payload: RiderCreate, operator: Operator) -> RiderResponse:
+        plan = operator.plan.value
+        limit = _PLAN_LIMITS.get(plan)
+        if limit is not None:
+            current = await self.rider_repo.count_by_operator(operator.id)
+            if current >= limit:
+                raise AppException(
+                    detail=(
+                        f"Your {plan.capitalize()} plan allows up to {limit} rider"
+                        f"{'s' if limit != 1 else ''}. Upgrade to add more."
+                    ),
+                    code="plan_limit_reached",
+                    status_code=403,
+                )
+
         rider = await self.rider_repo.create(
             operator_id=operator.id,
             name=payload.name,

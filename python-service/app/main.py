@@ -68,4 +68,4 @@ def create_app() -> FastAPI:
     return app
 
 
-app = create_app()  # v2026.05.20c
+app = create_app()  # v2026.05.20d

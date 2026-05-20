@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.rider import Rider
@@ -28,6 +28,12 @@ class RiderRepository(BaseRepository):
     async def get_by_phone(self, phone: str) -> Optional[Rider]:
         result = await self.session.execute(select(Rider).where(Rider.phone == phone).limit(1))
         return result.scalar_one_or_none()
+
+    async def count_by_operator(self, operator_id: uuid.UUID) -> int:
+        result = await self.session.execute(
+            select(func.count(Rider.id)).where(Rider.operator_id == operator_id)
+        )
+        return result.scalar() or 0
 
     async def list_by_operator(self, operator_id: uuid.UUID) -> List[Rider]:
         result = await self.session.execute(
