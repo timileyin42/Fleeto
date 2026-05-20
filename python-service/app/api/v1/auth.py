@@ -34,7 +34,7 @@ async def verify_otp(
 
 @router.post("/resend-otp", response_model=OtpSentResponse, status_code=status.HTTP_200_OK)
 async def resend_otp(
-    payload: VerifyOtpRequest,
+    payload: ForgotPasswordRequest,
     service: AuthService = Depends(get_auth_service),
 ) -> OtpSentResponse:
     return await service.resend_otp(payload.email)
