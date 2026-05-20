@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/api_client.dart';
 import '../../core/models/models.dart';
 import '../../core/theme.dart';
@@ -208,7 +209,8 @@ class _RiderJobDetailScreenState extends State<RiderJobDetailScreen> {
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                               if (job.customerPhone != null)
                                 TextButton.icon(
-                                  onPressed: () {},
+                                  onPressed: () => launchUrl(
+                                    Uri(scheme: 'tel', path: job.customerPhone!)),
                                   icon: const Icon(Icons.phone_outlined, size: 14),
                                   label: const Text('Contact Receiver', style: TextStyle(fontSize: 12)),
                                   style: TextButton.styleFrom(

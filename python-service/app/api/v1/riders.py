@@ -1,13 +1,40 @@
 import uuid
 
 from fastapi import APIRouter, Depends, status
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_operator, get_rider_service
+from app.api.deps import get_current_operator, get_current_rider, get_db
 from app.models.operator import Operator
-from app.schemas.rider import RiderCreate, RiderResponse
+from app.models.rider import Rider
+from app.models.job import Job as JobModel
+from app.schemas.rider import RiderCreate, RiderResponse, RiderStats
 from app.services.rider_service import RiderService
+from app.api.deps import get_rider_service
 
 router = APIRouter(prefix="/riders", tags=["riders"])
+
+
+@router.get("/me/stats", response_model=RiderStats)
+async def get_my_stats(
+    rider: Rider = Depends(get_current_rider),
+    db: AsyncSession = Depends(get_db),
+) -> RiderStats:
+    delivered = await db.scalar(
+        select(func.count()).where(
+            JobModel.rider_id == rider.id,
+            JobModel.status == "delivered",
+        )
+    ) or 0
+    cancelled = await db.scalar(
+        select(func.count()).where(
+            JobModel.rider_id == rider.id,
+            JobModel.status == "cancelled",
+        )
+    ) or 0
+    total = delivered + cancelled
+    rate = round(delivered / total * 100, 1) if total > 0 else 0.0
+    return RiderStats(total_jobs=delivered, completion_rate=rate)
 
 
 @router.post("", response_model=RiderResponse, status_code=status.HTTP_201_CREATED)

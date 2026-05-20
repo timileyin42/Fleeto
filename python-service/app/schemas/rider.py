@@ -31,3 +31,8 @@ class RiderResponse(BaseModel):
 
 class RiderStatusUpdate(BaseModel):
     status: RiderStatus
+
+
+class RiderStats(BaseModel):
+    total_jobs: int
+    completion_rate: float
