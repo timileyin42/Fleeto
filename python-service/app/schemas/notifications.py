@@ -13,3 +13,7 @@ class NotificationPrefsUpdate(BaseModel):
     new_jobs: bool
     status_updates: bool
     payments: bool
+
+
+class NotificationCount(BaseModel):
+    count: int

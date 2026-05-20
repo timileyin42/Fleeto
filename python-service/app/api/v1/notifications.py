@@ -1,14 +1,30 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_operator, get_db
+from app.models.job import Job as JobModel
 from app.models.operator import Operator
 from app.repositories.operator_repo import OperatorRepository
-from app.schemas.notifications import NotificationPrefs, NotificationPrefsUpdate
+from app.schemas.notifications import NotificationCount, NotificationPrefs, NotificationPrefsUpdate
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
+
+
+@router.get("/count", response_model=NotificationCount)
+async def get_notification_count(
+    current_operator: Operator = Depends(get_current_operator),
+    db: AsyncSession = Depends(get_db),
+) -> NotificationCount:
+    count = await db.scalar(
+        select(func.count(JobModel.id)).where(
+            JobModel.operator_id == current_operator.id,
+            JobModel.status == "pending",
+        )
+    ) or 0
+    return NotificationCount(count=count)
 
 _DEFAULTS: dict = {"new_jobs": True, "status_updates": True, "payments": False}
 

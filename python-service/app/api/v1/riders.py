@@ -15,6 +15,20 @@ from app.api.deps import get_rider_service
 router = APIRouter(prefix="/riders", tags=["riders"])
 
 
+@router.get("/me/notification-count")
+async def get_rider_notification_count(
+    rider: Rider = Depends(get_current_rider),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    count = await db.scalar(
+        select(func.count(JobModel.id)).where(
+            JobModel.rider_id == rider.id,
+            JobModel.status == "assigned",
+        )
+    ) or 0
+    return {"count": count}
+
+
 @router.get("/me/stats", response_model=RiderStats)
 async def get_my_stats(
     rider: Rider = Depends(get_current_rider),
