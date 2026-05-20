@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
@@ -62,6 +62,15 @@ function formatEta(seconds: number): string {
   return rem > 0 ? `~${hrs} hr ${rem} min` : `~${hrs} hr`
 }
 
+function formatLastSeen(ts: string | null | undefined): string {
+  if (!ts) return 'a while ago'
+  const secs = Math.floor((Date.now() - new Date(ts).getTime()) / 1000)
+  if (secs < 60) return `${secs}s ago`
+  const mins = Math.floor(secs / 60)
+  if (mins < 60) return `${mins} min ago`
+  return `${Math.floor(mins / 60)} hr ago`
+}
+
 function calcBearing(from: [number, number], to: [number, number]): number {
   const toRad = (d: number) => (d * Math.PI) / 180
   const dLng = toRad(to[1] - from[1])
@@ -72,17 +81,17 @@ function calcBearing(from: [number, number], to: [number, number]): number {
   return ((Math.atan2(x, y) * 180) / Math.PI + 360) % 360
 }
 
-function makeRiderIcon(deg: number) {
+function makeRiderIcon(deg: number, ghost = false) {
+  const fill = ghost ? '#9E9E9E' : '#1A73E8'
+  const pulse = ghost ? 'rgba(158,158,158,0.18)' : 'rgba(26,115,232,0.18)'
   return L.divIcon({
     className: '',
     html: `
       <div style="position:relative;width:52px;height:52px;display:flex;align-items:center;justify-content:center;">
-        <!-- outer pulse ring -->
-        <div style="position:absolute;width:52px;height:52px;border-radius:50%;background:rgba(26,115,232,0.18);"></div>
-        <!-- direction arrow -->
+        <div style="position:absolute;width:52px;height:52px;border-radius:50%;background:${pulse};"></div>
         <div style="position:absolute;transform:rotate(${deg}deg);width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
           <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-            <circle cx="18" cy="18" r="18" fill="#1A73E8"/>
+            <circle cx="18" cy="18" r="18" fill="${fill}"/>
             <path d="M18 8 L24 26 L18 21.5 L12 26 Z" fill="white"/>
           </svg>
         </div>
@@ -151,6 +160,9 @@ export default function TrackingPage() {
   const [routeCoords, setRouteCoords] = useState<[number, number][]>([])
   const [riderBearing, setRiderBearing] = useState(0)
   const [eta, setEta] = useState<number | null>(null)
+  const [displayPos, setDisplayPos] = useState<[number, number] | null>(null)
+  const displayPosRef = useRef<[number, number] | null>(null)
+  const animFrameRef = useRef<number | null>(null)
   const prevRiderPos = useRef<[number, number] | null>(null)
   const geocodeDone = useRef(false)
 
@@ -204,16 +216,56 @@ export default function TrackingPage() {
     })
   }, [info?.last_lat, info?.last_lng, dropoffCoords, info?.status])
 
+  // Smooth interpolation: animate marker from old position to new over 2000 ms
+  useEffect(() => {
+    if (!info?.last_lat || !info?.last_lng) return
+    const target: [number, number] = [info.last_lat, info.last_lng]
+
+    if (!displayPosRef.current) {
+      // First fix — place instantly, no animation
+      displayPosRef.current = target
+      setDisplayPos([...target])
+      return
+    }
+
+    const start: [number, number] = [...displayPosRef.current]
+    const duration = 2000
+    const t0 = performance.now()
+
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
+
+    function step(now: number) {
+      const t = Math.min((now - t0) / duration, 1)
+      const ease = 1 - (1 - t) ** 3 // ease-out cubic
+      const interp: [number, number] = [
+        start[0] + (target[0] - start[0]) * ease,
+        start[1] + (target[1] - start[1]) * ease,
+      ]
+      displayPosRef.current = interp
+      setDisplayPos([...interp])
+      if (t < 1) animFrameRef.current = requestAnimationFrame(step)
+    }
+
+    animFrameRef.current = requestAnimationFrame(step)
+    return () => { if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current) }
+  }, [info?.last_lat, info?.last_lng])
+
   const currentStep = info ? STATUS_STEPS.indexOf(info.status) : 0
   const hasRider = !!(info?.last_lat && info?.last_lng)
   const riderPos: [number, number] | null = hasRider ? [info!.last_lat!, info!.last_lng!] : null
+
+  // Ghost mode: rider hasn't sent a ping in over 2 minutes
+  const isGhost = useMemo(() => {
+    if (!info?.last_seen) return false
+    return Date.now() - new Date(info.last_seen).getTime() > 2 * 60 * 1000
+  }, [info?.last_seen])
 
   const fallbackCoords: [number, number][] = (
     [pickupCoords, dropoffCoords].filter(Boolean) as [number, number][]
   )
 
   const showEta =
-    eta !== null && hasRider && info?.status !== 'delivered' && info?.status !== 'cancelled'
+    eta !== null && hasRider && !isGhost && info?.status !== 'delivered' && info?.status !== 'cancelled'
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -238,7 +290,7 @@ export default function TrackingPage() {
         <div className="bg-surface/90 backdrop-blur-md px-6 py-3 rounded-full shadow-card pointer-events-auto border border-outline-variant/20">
           <span className="text-h3 font-black tracking-widest uppercase text-primary">Delivra</span>
         </div>
-        {info?.status === 'in_transit' && (
+        {info?.status === 'in_transit' && !isGhost && (
           <div className="bg-surface/90 backdrop-blur-md px-4 py-2 rounded-full shadow-card border border-outline-variant/20 flex items-center gap-2 pointer-events-auto">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-body-sm font-medium text-on-surface">Live</span>
@@ -285,17 +337,30 @@ export default function TrackingPage() {
             </Marker>
           )}
 
-          {/* Rider — blue arrow rotating with direction of travel */}
-          {riderPos && (
-            <Marker position={riderPos} icon={makeRiderIcon(riderBearing)}>
+          {/* Rider — animated arrow; grey when signal is lost */}
+          {displayPos && (
+            <Marker position={displayPos} icon={makeRiderIcon(riderBearing, isGhost)}>
               <Popup>
                 {info?.rider_name || 'Rider'}
-                {info?.last_seen && <><br />Last seen {new Date(info.last_seen).toLocaleTimeString()}</>}
+                {info?.last_seen && <><br />Last seen {formatLastSeen(info.last_seen)}</>}
               </Popup>
             </Marker>
           )}
         </MapContainer>
       </div>
+
+      {/* Ghost mode banner — floats above the bottom sheet when signal is lost */}
+      {isGhost && riderPos && (
+        <div className="absolute bottom-[calc(60vh-32px)] left-4 right-4 z-40 bg-surface/95 backdrop-blur-md border border-outline-variant/30 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-card">
+          <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-on-surface-variant text-[18px]">signal_wifi_off</span>
+          </div>
+          <div>
+            <p className="text-body-sm font-semibold text-on-surface">Rider signal weak</p>
+            <p className="text-[11px] text-on-surface-variant">Last seen {formatLastSeen(info?.last_seen)}</p>
+          </div>
+        </div>
+      )}
 
       {/* Bottom sheet */}
       <div className="bg-surface w-full rounded-t-3xl shadow-sheet z-30 -mt-8 relative">
