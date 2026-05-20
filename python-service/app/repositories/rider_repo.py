@@ -26,7 +26,7 @@ class RiderRepository(BaseRepository):
         return result.scalar_one_or_none()
 
     async def get_by_phone(self, phone: str) -> Optional[Rider]:
-        result = await self.session.execute(select(Rider).where(Rider.phone == phone))
+        result = await self.session.execute(select(Rider).where(Rider.phone == phone).limit(1))
         return result.scalar_one_or_none()
 
     async def list_by_operator(self, operator_id: uuid.UUID) -> List[Rider]:

@@ -21,18 +21,18 @@ async def get_my_stats(
     db: AsyncSession = Depends(get_db),
 ) -> RiderStats:
     delivered = await db.scalar(
-        select(func.count()).where(
+        select(func.count(JobModel.id)).where(
             JobModel.rider_id == rider.id,
             JobModel.status == "delivered",
         )
     ) or 0
-    cancelled = await db.scalar(
-        select(func.count()).where(
+    failed = await db.scalar(
+        select(func.count(JobModel.id)).where(
             JobModel.rider_id == rider.id,
-            JobModel.status == "cancelled",
+            JobModel.status == "failed",
         )
     ) or 0
-    total = delivered + cancelled
+    total = delivered + failed
     rate = round(delivered / total * 100, 1) if total > 0 else 0.0
     return RiderStats(total_jobs=delivered, completion_rate=rate)
 
